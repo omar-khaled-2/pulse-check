@@ -1,0 +1,101 @@
+{
+  "name": "Add Form",
+  "nodes": [
+    {
+      "parameters": {
+        "tableName": "={{ $env.ENDPOINTS_TABLE_NAME }}",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "id",
+              "fieldValue": "=s{{ $now.toMillis()}}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $json.name }}"
+            },
+            {
+              "fieldId": "url",
+              "fieldValue": "={{ $json.url }}"
+            },
+            {
+              "fieldId": "created_at",
+              "fieldValue": "={{ $now.toString() }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "UNKNOWN"
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsDynamoDb",
+      "typeVersion": 1,
+      "position": [
+        32,
+        -16
+      ],
+      "id": "c548d106-f18f-4d4d-8be7-e30dad1f77db",
+      "name": "Create or update an item",
+      "alwaysOutputData": false,
+      "credentials": {
+        "aws": {
+          "id": "ugEB7ujxrbNzorIb",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "formTitle": "Add Endpoint",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "name",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "url",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -192,
+        -16
+      ],
+      "id": "1a1e5477-9a7c-4871-93bd-60bb147e5c89",
+      "name": "On Add Endpoint Form Submission",
+      "webhookId": "3589c04a-a49c-482e-91fd-da56caf00c7c"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On Add Endpoint Form Submission": {
+      "main": [
+        [
+          {
+            "node": "Create or update an item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "8bbc9a89-8f6b-415b-bbcb-4c1ddf20b19a",
+  "meta": {
+    "instanceId": "be7b509a7fda145b078cb65580be8c559c7005885169f8bb804e07cd884f1c4b"
+  },
+  "id": "f8tPHKiJC54VzSsd",
+  "tags": []
+}

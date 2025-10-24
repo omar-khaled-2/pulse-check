@@ -1,0 +1,658 @@
+{
+  "name": "check-pulse",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        272
+      ],
+      "id": "53bf4653-b7ab-4a54-b070-74a24b78849a",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        624,
+        288
+      ],
+      "id": "29b3fe28-deb3-43d1-b9cf-3700fb46d4f7",
+      "name": "HTTP Request",
+      "notesInFlow": false,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "team": "={{ $env.CLICKUP_TEAM_ID }}",
+        "space": "={{ $env.CLICKUP_SPACE_ID }}",
+        "folderless": true,
+        "list": "901213514858",
+        "name": "={{ $('Loop Over Items').item.json.name }} is DOWN",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        560
+      ],
+      "id": "3e8c9734-2ca1-48bd-a70f-b9ac5d8b70eb",
+      "name": "Create a task",
+      "credentials": {
+        "clickUpApi": {
+          "id": "DFbpv8dzfhDtTwXE",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        400,
+        272
+      ],
+      "id": "67292dfd-280b-4f1d-b1dd-458b357b84bf",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "id": "={{ $json.task_id }}"
+      },
+      "type": "n8n-nodes-base.clickUp",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        -32
+      ],
+      "id": "a082fb1c-a770-4ab6-8d7a-5cf01044054b",
+      "name": "Delete a task",
+      "credentials": {
+        "clickUpApi": {
+          "id": "DFbpv8dzfhDtTwXE",
+          "name": "ClickUp account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableName": "={{ $env.ENDPOINTS_TABLE_NAME }}",
+        "scan": true,
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.awsDynamoDb",
+      "typeVersion": 1,
+      "position": [
+        144,
+        272
+      ],
+      "id": "417b3cb4-84e2-4769-8e21-fd693088b6e4",
+      "name": "Get Endpoints",
+      "credentials": {
+        "aws": {
+          "id": "ugEB7ujxrbNzorIb",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "00cbd36c-f8d5-49c3-a24a-a9d1d2f6f7e5",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "notExists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        288
+      ],
+      "id": "2facd180-7ceb-42fc-a1f4-58d88b6e40d9",
+      "name": "Is Healthy"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c31456ce-6c30-4d6c-aea1-48ca2fc1bb3a",
+              "name": "status",
+              "value": "HEALTH",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        192
+      ],
+      "id": "f4fa33b8-1d47-426a-bb40-d6bd5142625e",
+      "name": "Health Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c4724af9-fdbd-4683-a91c-f42b789b919b",
+              "name": "status",
+              "value": "DOWN",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1040,
+        384
+      ],
+      "id": "c97576d0-996b-417f-b568-94f3ec5aa9ee",
+      "name": "Down Status"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4441e8ff-9840-4137-a7e8-2a044cfdf4e6",
+              "name": "status",
+              "value": "={{ $json.status }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1312,
+        384
+      ],
+      "id": "40eafff0-e91e-48fb-8d79-a53a70df1d87",
+      "name": "Edit Status"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2d6fe44-433f-4dbb-8385-b6112ac22bff",
+              "leftValue": "={{ $json.status }}",
+              "rightValue": "={{ $('Loop Over Items').item.json.status }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1520,
+        384
+      ],
+      "id": "9e8ea823-ee7e-49ab-bbf4-cfae20dc8a3a",
+      "name": "Is Status Changed"
+    },
+    {
+      "parameters": {
+        "tableName": "={{ $env.ENDPOINTS_TABLE_NAME }}",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "id",
+              "fieldValue": "={{ $('Loop Over Items').item.json.id }}"
+            },
+            {
+              "fieldId": "name",
+              "fieldValue": "={{ $('Loop Over Items').item.json.name }}"
+            },
+            {
+              "fieldId": "status",
+              "fieldValue": "={{ $('Edit Status').item.json.status }}"
+            },
+            {
+              "fieldId": "url",
+              "fieldValue": "={{ $('Loop Over Items').item.json.url }}"
+            },
+            {
+              "fieldId": "created_at",
+              "fieldValue": "={{ $('Loop Over Items').item.json.created_at }}"
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsDynamoDb",
+      "typeVersion": 1,
+      "position": [
+        1776,
+        368
+      ],
+      "id": "a252d24b-8d8e-4b81-826c-a8ce3c0015de",
+      "name": "Update Status",
+      "credentials": {
+        "aws": {
+          "id": "ugEB7ujxrbNzorIb",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "tasks",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "endpoint_id",
+              "fieldValue": "={{ $('Loop Over Items').item.json.id }}"
+            },
+            {
+              "fieldId": "task_id",
+              "fieldValue": "={{ $json.id }}"
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsDynamoDb",
+      "typeVersion": 1,
+      "position": [
+        1840,
+        560
+      ],
+      "id": "86e22070-99c6-4069-b24a-76bda9c027bb",
+      "name": "Store Task Id",
+      "credentials": {
+        "aws": {
+          "id": "ugEB7ujxrbNzorIb",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "tableName": "={{ $env.TASKS_TABLE_NAME }}",
+        "returnValues": "ALL_OLD",
+        "keysUi": {
+          "keyValues": [
+            {
+              "key": "endpoint_id",
+              "value": "={{ $('Loop Over Items').item.json.id }}"
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsDynamoDb",
+      "typeVersion": 1,
+      "position": [
+        1504,
+        -32
+      ],
+      "id": "27705fc2-064f-4e6d-847d-08e495a94c50",
+      "name": "Delete Task Id",
+      "credentials": {
+        "aws": {
+          "id": "ugEB7ujxrbNzorIb",
+          "name": "AWS account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5813afde-3e59-4aff-8851-1de155570cfc",
+              "leftValue": "={{ $('Loop Over Items').item.json.status }}",
+              "rightValue": "DOWN",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        576
+      ],
+      "id": "a08f446c-472c-46d1-b8a2-2c2d6b885516",
+      "name": "Was It Down"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "0722c423-481b-4a5d-b817-1ae09811588a",
+              "leftValue": "={{ $('Loop Over Items').item.json.status }}",
+              "rightValue": "DOWN",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1264,
+        -16
+      ],
+      "id": "beb18239-63a1-49d4-90a0-03c1633d8063",
+      "name": "Is It Fixed"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Endpoints",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Is Healthy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a task": {
+      "main": [
+        [
+          {
+            "node": "Store Task Id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a task": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Endpoints": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Healthy": {
+      "main": [
+        [
+          {
+            "node": "Health Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Down Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Health Status": {
+      "main": [
+        [
+          {
+            "node": "Is It Fixed",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Down Status": {
+      "main": [
+        [
+          {
+            "node": "Was It Down",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Edit Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Status": {
+      "main": [
+        [
+          {
+            "node": "Is Status Changed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Status Changed": {
+      "main": [
+        [
+          {
+            "node": "Update Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Status": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Task Id": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Task Id": {
+      "main": [
+        [
+          {
+            "node": "Delete a task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Was It Down": {
+      "main": [
+        [
+          {
+            "node": "Create a task",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is It Fixed": {
+      "main": [
+        [
+          {
+            "node": "Delete Task Id",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a93a917b-1e39-4edd-9bb1-81d28a50122d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fd7b8c2a1f1f5bdfb5fdba30d7246bd39e85ca0cbf946cff79ba1f8c83598d91"
+  },
+  "id": "whPqy07JKu97cu7Q",
+  "tags": []
+}
